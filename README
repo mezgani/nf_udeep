@@ -1,0 +1,16 @@
+__software__= "nf_udeep"
+__author__ = "MEZGANI Ali mezgani@nativelabs.org"
+__version__ = "0.1"
+__date__ = "2010/03/01 23:46:07"
+__license__="GPLv3"
+__credits__ = "Thanks mam for support"
+
+
+nf_udeep is a netfilter hooks module, that ensure some firewall tasks and a agent for specific usage
+
+nf_udeep is Free Software you can redistribute it and/or modify it under the terms of the GNU
+General Public License as published by the Free Software Foundation; either vers
+ion 3 of the License, or (at your option) any later version.See the GNU General Public
+License for more details.
+
+
