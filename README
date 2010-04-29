@@ -14,3 +14,26 @@ ion 3 of the License, or (at your option) any later version.See the GNU General 
 License for more details.
 
 
+
+
+Kernel insertion notes:
+
+If you need to add a driver to kernel source tree. You have to modified first 
+the Kconfig and the menu items are being shown in make menuconfig.
+and check after that your .config contains the following entry 
+CONFIG_UDEEP=y
+
+and Makefile:
+
+M_OBJS := udeep.o
+obj-$(CONFIG_UDEEP) += udeep.o
+export-objs := udeep.o
+include $(TOPDIR)/Rules.make
+
+
+Well, if you put your driver code in a new directory,  you might
+have to add the following line to the Makefile one level above your
+directory: 
+
+subdir-$(CONFIG_MYUSB) += udeep
+
