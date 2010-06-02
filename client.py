@@ -5,7 +5,7 @@ import socket
 import struct 
 
 
-host="172.20.0.2"
+host="172.20.0.12"
 port=8888
 sock=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.connect((host,port))

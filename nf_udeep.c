@@ -15,8 +15,8 @@
 
 
 #define LICENSE "GPLv3"
-#define AUTHOR  "MEZGANI Ali <mezgani@nativelabs.org>";
-#define DESC    "netfilter hooks module, personnal tiny fw and sensor"
+#define AUTHOR  "MEZGANI Ali <mezgani [AT] nativelabs [.] org>";
+#define DESC    "netfilter hooks module, personnal tiny fw controller and sensor"
 
 #define SUCCESS 0
 
@@ -28,24 +28,23 @@
 
 #define LOGFILE "/var/log/udeep.log"
 
-#define  TYPE_CHK     "check"   
-#define  TYPE_DELETE  "delete"
-#define  TYPE_ADD     "add"
-#define  TYPE_MODIFY  "modify"
-#define  TYPE_DISPLAY "display"
-#define  TYPE_SUPER   "super"
-#define  TYPE_BLOCK   "block"
-#define  TYPE_PERMIT  "permi"
+#define  TYPE_CHK     "CHECK"   
+#define  TYPE_DELETE  "DELETE"
+#define  TYPE_ADD     "ADD"
+#define  TYPE_MODIFY  "MODIFY"
+#define  TYPE_DISPLAY "DISPLAY"
+#define  TYPE_SUPER   "SUPER"
+#define  TYPE_BLOCK   "BLOCK"
+#define  TYPE_PERMIT  "PERMIT"
+
 
 
 /*******************************
- *Remote control firewall header
+ *Remote control netfilter header
  *******************************/
 
-struct rcfhdr{
-  /*  __be16 version;
-  __be16 port;
-  __be32 id;*/
+struct rcnphdr{
+
   unsigned short int version;
   unsigned short int port;
   unsigned short int id;
@@ -62,7 +61,7 @@ static struct nf_hook_ops nfho;   //net filter hook option struct
 struct sk_buff *sock_buff;
 struct udphdr  *udp_header;        //udp header struct (not used)
 struct iphdr   *ip_header;          //ip header struct
-struct rcfhdr  *rcf_header;
+struct rcnphdr  *rcnp_header;
 struct device  *d;
 
 
@@ -138,15 +137,14 @@ static unsigned int hook_func(unsigned int hooknum,
                               const struct net_device *out, 
                               int (*okfn)(struct sk_buff *))
 {
-
   sock_buff = skb;
   ip_header = (struct iphdr *)skb_network_header(sock_buff);    //grab network header using accessor
   udp_header = (struct udphdr *)skb_transport_header(sock_buff);
-  rcf_header = (struct rcfhdr *)(skb_transport_header(sock_buff)+sizeof(struct iphdr));
-  //rcf_header = (struct rcfhdr *)(skb_transport_header(sock_buff)+sizeof(struct udphdr)+sizeof(struct iphdr));
+  rcnp_header = (struct rcnphdr *)(skb_transport_header(sock_buff)+sizeof(struct udphdr)+sizeof(struct iphdr));
 
-  __be16 sport;
-  __be16 dport;
+     
+  //__be16 sport;
+  //__be16 dport;
 
   // __be32 saddr, daddr;
   
@@ -157,41 +155,29 @@ static unsigned int hook_func(unsigned int hooknum,
 
   if (ip_header->protocol==IPPROTO_UDP)  {
     udp_header = (struct udphdr *)skb_transport_header(sock_buff);  //grab transport header
-
-    sport = ntohs((unsigned int) udp_header->source);
-    dport = ntohs((unsigned int) udp_header->dest);
     printk(KERN_INFO "[udeep] debug IN:%s LEN:%d TTL:%d ID:%d SPORT:%d DPORT:%d SRC:%d.%d.%d.%d DST:%d.%d.%d.%d \n",
 	   skb->dev->name,
 	   skb->len,
 	   ip_header->ttl,
 	   ip_header->id,
-	   sport, dport,
+	   ntohs((unsigned int) udp_header->source),
+           ntohs((unsigned int) udp_header->dest),
 	   NIPQUAD(ip_header->saddr),
 	   NIPQUAD(ip_header->daddr));     
 
 #if DEBUG > 0
 
     
-    //s_port = ((udp_header->source & 0xFF00) >> 8 | (udp_header->source & 0x00FF));
-    //d_port = ((udp_header->dest & 0xFF00) >> 8 | (udp_header->dest & 0x00FF));
-    printk(KERN_INFO "network: 0x%p transport: 0x%p application: 0x%p\n",ip_header,udp_header,rcf_header);
-    //printk(KERN_INFO "[udeep] debug: transport start: 0p%p\n", rcf_header);
-    //printk(KERN_INFO "[udeep] debug: network   start: 0p%p\n", skb_network_header(sock_buff));
-    printk(KERN_INFO "[udeep] debug: Length: rcf_header=%d | version=%d |  port=%d | comm=%d | data=%d\n",
-	   sizeof(rcf_header), 
-	   sizeof(rcf_header->version), 
-	   sizeof(rcf_header->port), 
-	   sizeof(rcf_header->comm),
-	   sizeof(rcf_header->data));
-    /*    printk(KERN_INFO "[udeep] debug: Length: rcf_header=%d | version=%d |  port=%d | comm=%s | data=%s\n",
-	   sizeof(rcf_header), 
-	   ntohs(rcf_header->version), 
-	   ntohs(rcf_header->port), 
-	   ntohs(rcf_header->comm),
-	   ntohs(rcf_header->data));*/
+    printk(KERN_INFO "network: 0x%p transport: 0x%p application: 0x%p\n",ip_header,udp_header,rcnp_header);
+    printk(KERN_INFO "[udeep] debug: Length: rcnp_header=%d | version=%d |  port=%d | comm=%d | data=%d\n",
+	   sizeof(rcnp_header), 
+	   sizeof(rcnp_header->version), 
+	   sizeof(rcnp_header->port), 
+	   sizeof(rcnp_header->comm),
+	   sizeof(rcnp_header->data));
 
-    printk(KERN_INFO "[udeep] debug: Length: version=%d port=%d comm=%s mod=%s data=%s\n",
-	   ntohs(rcf_header->version), ntohs(rcf_header->port), rcf_header->comm, rcf_header->mode, rcf_header->data);
+    printk(KERN_INFO "[udeep] debug: Length: version=%d port=%d id=%d comm=%s mod=%s data=%s\n",
+	   rcnp_header->version, rcnp_header->port, rcnp_header->id, rcnp_header->comm, rcnp_header->mode, rcnp_header->data);
 
     
 #endif
@@ -200,22 +186,21 @@ static unsigned int hook_func(unsigned int hooknum,
     
 #if TOLOG > 0
     int len=0, pos=0;
-    //char *file="/var/log/udeep.log";
     char *file=LOGFILE;
     char *buffer, *log=NULL;
-    
+    char *command;    
     buffer = kmalloc(MAX, GFP_KERNEL);
 
-    sprintf(log, "network: 0x%p transport: 0x%p application: 0x%p\n",ip_header,udp_header,rcf_header);
-    sprintf(log, "[udeep] debug: Length: rcf_header=%d | version=%d |  port=%d | comm=%d | data=%d\n",
-	   sizeof(rcf_header), 
-	   sizeof(rcf_header->version), 
-	   sizeof(rcf_header->port), 
-	   sizeof(rcf_header->comm),
-	   sizeof(rcf_header->data));
+    sprintf(log, "network: 0x%p transport: 0x%p application: 0x%p\n",ip_header,udp_header,rcnp_header);
+    sprintf(log, "[udeep] debug: Length: rcnp_header=%d | version=%d |  port=%d | comm=%d | data=%d\n",
+	   sizeof(rcnp_header), 
+	   sizeof(rcnp_header->version), 
+	   sizeof(rcnp_header->port), 
+	   sizeof(rcnp_header->comm),
+	   sizeof(rcnp_header->data));
 
     sprintf(log,"[udeep] debug: Length: version=%d port=%d comm=%s mod=%s data=%s\n",
-	   ntohs(rcf_header->version), ntohs(rcf_header->port), rcf_header->comm, rcf_header->mode, rcf_header->data);
+	   ntohs(rcnp_header->version), rcnp_header->port, rcnp_header->comm, rcnp_header->mode, rcnp_header->data);
     
     buffer=readfile(file, 0);
     if (buffer > 0){
@@ -223,35 +208,12 @@ static unsigned int hook_func(unsigned int hooknum,
       len=writefile(file, log, strlen(log), pos);
     }
 #endif
-
-    /**
-    
-    switch (ntohs(rcf_header->comm)) {
-  case TYPE_CHK:
-    break;
-  case TYPE_DELETE:
-    break;
-  case TYPE_ADD:
-    break;
-  case TYPE_DISPLAY:
-    break;
-  case TYPE_SUPER:
-    break;
-  case TYPE_SBLOCK:
-    break;
-
-  default:
-    printk(KERN_ALERT, "WARNING: encountered unexpected type %d\n",
-	ntohs(ce->type));
-  }
-    **/
-
-    
-    return NF_ACCEPT;
-  }
-  return NF_ACCEPT;
   
+  }
+  
+return NF_ACCEPT;
 }
+
  
 static int __init init_main(void)
 {

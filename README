@@ -1,5 +1,5 @@
 __software__= "nf_udeep"
-__author__ = "MEZGANI Ali mezgani@nativelabs.org"
+__author__ = "MEZGANI Ali <mezgani [AT] nativelabs [.] org>"
 __version__ = "0.1"
 __date__ = "2010/03/01 23:46:07"
 __license__="GPLv3"
