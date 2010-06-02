@@ -26,7 +26,7 @@ CONFIG_NF_UDEEP=y
 and Makefile:
 
 M_OBJS := nf_udeep.o
-obj-$(CONFIG_UDEEP) += nf_udeep.o
+obj-$(CONFIG_NF_UDEEP) += nf_udeep.o
 export-objs := nf_udeep.o
 include $(TOPDIR)/Rules.make
 
@@ -35,5 +35,5 @@ Well, if you put your driver code in a new directory,  you might
 have to add the following line to the Makefile one level above your
 directory: 
 
-subdir-$(CONFIG_nf_UDEEP) += nf_udeep
+subdir-$(CONFIG_NF_UDEEP) += nf_udeep
 
